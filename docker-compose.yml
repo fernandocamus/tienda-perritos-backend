@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  backend:
+    build: .
+    container_name: tienda-backend
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=admin123
+      - DB_NAME=tienda_perritos
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: tienda-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin123
+      - MYSQL_DATABASE=tienda_perritos
+    ports:
+      - "3306:3306"
+    volumes:
+      # Requisito de Persistencia de la pauta
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
