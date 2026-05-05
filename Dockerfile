@@ -1,19 +1,24 @@
-# Etapa 1: Construcción (Build)
-FROM node:20-alpine AS build
+# Usamos una imagen ligera de Node.js
+FROM node:20-alpine
+
+# Definimos el directorio de trabajo
 WORKDIR /app
+
+# Copiamos solo los archivos de dependencias para optimizar el caché
 COPY package*.json ./
-RUN npm install
+
+# Instalamos solo las dependencias de producción para que la imagen sea liviana
+RUN npm install --only=production
+
+# Resto del código (incluyendo server.js)
 COPY . .
-RUN npm run build
 
-# Etapa 2: Ejecución (Production) - Imagen ligera
-FROM node:20-alpine AS runner
-WORKDIR /app
-# Definir usuario no-root por seguridad (IE1)
-USER node 
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
+# SEGURIDAD: Usamos el usuario 'node' que ya viene en la imagen
+# Esto cumple con el principio de mínimo privilegio de la pauta.
+USER node
 
+# Exponemos el puerto que usa tu servidor Express
 EXPOSE 3001
-CMD ["node", "dist/main"]
+
+# Comando para iniciar la aplicación según tu package.json
+CMD ["node", "server.js"]
