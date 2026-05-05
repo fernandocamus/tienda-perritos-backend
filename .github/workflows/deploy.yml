@@ -43,7 +43,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }} # .pem
         # Comando para actualizar la app en el servidor privado
         script: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PRIVATE_IP }} << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_PRIVATE_IP }} << 'ENDSSH'
             aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
             cd ~/backend || mkdir ~/backend && cd ~/backend
             # Aquí va el comando para bajar la imagen nueva y levantarla
