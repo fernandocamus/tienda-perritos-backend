@@ -23,7 +23,6 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      # Requisito de Persistencia de la pauta
       - dbdata:/var/lib/mysql
 
 volumes:
