@@ -35,52 +35,18 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-    - name: 5. Desplegar en EC2 Privada a través de Bastion
+    - name: 5. Desplegar en servidor (CD)
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.EC2_PRIVATE_IP }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ secrets.BASTION_HOST }}
-        proxy_username: ${{ secrets.EC2_USER }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        host: ${{ secrets.BASTION_HOST }} # IP Pública
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }} # .pem
+        # Comando para actualizar la app en el servidor privado
         script: |
-          mkdir -p ~/tienda-backend
-          cd ~/tienda-backend
-          
-          # Crear el docker-compose.yml de producción al vuelo
-          cat << 'EOF' > docker-compose.yml
-          version: "3.8"
-          services:
-            backend:
-              image: ${{ steps.login-ecr.outputs.registry }}/tienda-backend:latest
-              container_name: tienda-backend
-              environment:
-                - DB_HOST=db
-                - DB_USER=root
-                - DB_PASSWORD=admin123
-                - DB_NAME=tienda_perritos
-              ports:
-                - "3001:3001"
-              depends_on:
-                - db
-            db:
-              image: mysql:8
-              container_name: tienda-db
-              environment:
-                - MYSQL_ROOT_PASSWORD=admin123
-                - MYSQL_DATABASE=tienda_perritos
-              ports:
-                - "3306:3306"
-              volumes:
-                - dbdata:/var/lib/mysql
-          volumes:
-            dbdata:
-          EOF
-          
-          # Iniciar sesión en AWS ECR desde la instancia EC2
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-          
-          # Descargar la imagen nueva y reiniciar contenedores
-          sudo docker compose pull
-          sudo docker compose up -d
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PRIVATE_IP }} << 'ENDSSH'
+            aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            cd ~/backend || mkdir ~/backend && cd ~/backend
+            # Aquí va el comando para bajar la imagen nueva y levantarla
+            sudo docker pull ${{ steps.login-ecr.outputs.registry }}/tienda-backend:latest
+            sudo docker compose up -d
+          ENDSSH
