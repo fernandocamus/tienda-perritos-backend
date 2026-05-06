@@ -35,15 +35,18 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     # 4. Construcción de la imagen Docker y su publicación en la nube
-    - name: 4. Construir y publicar imagen Docker
+    - name: 4. Construir y publicar imágenes Docker
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: tienda-backend
         IMAGE_TAG: latest
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
+        # Imagen Backend
+        docker build -t $ECR_REGISTRY/tienda-backend:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/tienda-backend:$IMAGE_TAG
+        
+        # Imagen Base de Datos (Personalizada con init.sql)
+        docker build -t $ECR_REGISTRY/tienda-db:$IMAGE_TAG ./db
+        docker push $ECR_REGISTRY/tienda-db:$IMAGE_TAG
     # 5. Despliegue automatizado en la instancia EC2 mediante SSH (CD)
     - name: 5. Desplegar en servidor (CD)
       uses: appleboy/ssh-action@master
@@ -84,7 +87,7 @@ jobs:
               depends_on:
                 - db
             db:
-              image: mysql:8
+              image: ${{ steps.login-ecr.outputs.registry }}/tienda-db:latest
               container_name: tienda-db
               environment:
                 - MYSQL_ROOT_PASSWORD=admin123

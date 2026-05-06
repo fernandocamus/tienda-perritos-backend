@@ -29,15 +29,15 @@ services:
 
   # Servicio de Base de Datos (MySQL)
   db:
+    build: ./db
 
     # Uso de imagen oficial de MySQL versión 8
-    image: mysql:8
     container_name: tienda-db
 
     # Configuración inicial de la base de datos
     environment:
-      - MYSQL_ROOT_PASSWORD=admin123
-      - MYSQL_DATABASE=tienda_perritos
+    - MYSQL_ROOT_PASSWORD=admin123
+    - MYSQL_DATABASE=tienda_perritos
 
     # Mapeo del puerto estándar de MySQL
     ports:
