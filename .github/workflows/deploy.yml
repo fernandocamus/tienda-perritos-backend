@@ -4,7 +4,7 @@ name: CI Pipeline - Backend Tienda Perritos
 # Configuración del Trigger del pipeline 
 on:
   push:
-    # solo cuando se haga push a la rama deploy
+    # solo cuando se haga push a la rama deploy 
     branches:
       - deploy
 
