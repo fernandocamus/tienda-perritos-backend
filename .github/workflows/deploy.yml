@@ -89,6 +89,7 @@ jobs:
             db:
               image: ${{ steps.login-ecr.outputs.registry }}/tienda-db:latest
               container_name: tienda-db
+              command: --bind-address=0.0.0.0
               environment:
                 - MYSQL_ROOT_PASSWORD=admin123
                 - MYSQL_DATABASE=tienda_perritos
